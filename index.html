@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8' />
+<title>getKokkaiGIji</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<script>
+
+window.onload = () => {
+  
+  const qobj = getQueryParams();
+  
+  let url = "https://kokkai.ndl.go.jp/api/";
+  
+  if(qobj._type){
+    url += qobj._type + "/";
+  }else{
+    url += "speech/";
+  }
+  
+  url += "?";
+  
+  let tq = ""
+  
+  //デフォルトを変更したければ
+  if(!qobj.recordPacking) tq += "recordPacking" + "=" + "json";
+  
+  
+  for( name in qobj){
+    
+    if(name.match(/^_/)){ continue; }
+    
+    let v = qobj[name];
+    
+    if(name == "until" || name == "from"){
+      v = warekiToSeireki(v);
+    }
+    
+    if(tq) tq += "&";
+    if(v)  tq += name + "=" + v ;
+    
+  }
+  
+  url += tq;
+  
+  console.log(url);
+  
+  renderJson(url);
+  
+}
+
+const getQueryParams = () => {
+  const q = window.location.search;
+  const qq = q.slice(1);
+  const qset = qq.split("&");
+  const qobj = {};
+  qset.forEach( c => {
+    const cc = c.split("=");
+    qobj[cc[0]] = cc[1];
+  });
+  return qobj;
+}
+
+const loadJSON = function(path){
+  
+  let data;
+  
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', path, false);
+  xhr.send(null);
+  
+  if(xhr.status == 200 || xhr.status == 304){
+    data = JSON.parse(xhr.responseText);
+  }
+  
+  return data;
+}
+
+const warekiToSeireki = (wareki) => {
+  const w = wareki.split(/\./g); //
+  
+  if(wareki.match(/\d+\-\d+\-\d+/)) return wareki;
+  if(!w || w.length != 3) return "0000-01-01";
+  
+  const gengo = w[0].substr(0, 1);
+  const wayear = w[0].substr(1);
+  
+  let year = 0;
+  let month = (w[1].length > 1) ? w[1] : "0" + w[1];
+  let date =  (w[2].length > 1) ? w[2] : "0" + w[2];
+  
+  if(gengo == "S") year = 1926 + parseInt(wayear, 10) - 1;
+  if(gengo == "H") year = 1989 + parseInt(wayear, 10) - 1;
+  if(gengo == "R") year = 2019 + parseInt(wayear, 10) - 1;
+  
+  const seireki = year + "-" + month + "-" + date;
+  return seireki;
+}
+
+
+const renderJson = (url) => {
+  let res = "";
+  const json = loadJSON(url);
+  
+  if(!json || !json.speechRecord) alert("議事録は検索できませんでした。");
+  
+  json.speechRecord.forEach( m => {
+    const sr = m;
+    res += "<div class='speech'>";
+    res += "<span>" + sr.date + "</span>";
+    res += "<span>" + sr.speaker + "</span>";
+    res += "<span><a href='" + sr.speechURL + "'>国会議事録検索システムで見る</a></span>";
+    res += "<p>" + sr.speech.replace(/\n/g, "<br>") + "</p>";
+    res += "</div>";
+  });
+  
+  /*
+  json.speechRecord.forEach( m => {
+    res += "<div>";
+    for(para in m){
+      let d = m[para];
+      if(para.match(/URL/)){
+        res += "<div><a href='" + d + "'>" + d + "</a></div>";
+      }else{
+        res += "<div>" + para + ":" + d + "</div>";
+      }
+    }
+    res += "</div>";
+  });
+  */
+  
+  document.getElementById("wrap").innerHTML = res;
+}
+
+</script>
+
+<style>
+div.speech{
+  background-color: #EEFFEE;
+  border-radius: 8px;
+  padding: 8px;
+  margin: 16px;
+}
+
+span{
+  padding: 4px;
+}
+
+p{
+  text-indent: -1em;
+  padding-left: 1em;
+}
+
+</style>
+
+</head>
+<body>
+
+<div id="page">
+  <div id="memo">
+  出典「国会会議録検索システム」
+  </div>
+  <div id="wrap">
+  </div>
+</div>
+
+<script>
+  
+</script>
+
+</body>
+</html>
+
+
