@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset='utf-8' />
-<title>getKokkaiGIji</title>
+<title>getKokkaiGiji</title>
 <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 <script>
 
@@ -56,7 +56,8 @@ const getQueryParams = () => {
   const qobj = {};
   qset.forEach( c => {
     const cc = c.split("=");
-    qobj[cc[0]] = cc[1];
+    //qobj[cc[0]] = cc[1];
+    qobj[cc[0]] = decodeURI(cc[1]);
   });
   return qobj;
 }
