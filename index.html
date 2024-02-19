@@ -13,9 +13,9 @@ window.onload = () => {
   let url = "https://kokkai.ndl.go.jp/api/";
   
   if(qobj._type){
-    url += qobj._type + "/";
+    url += qobj._type;
   }else{
-    url += "speech/";
+    url += "speech";
   }
   
   url += "?";
